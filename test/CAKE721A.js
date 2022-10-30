@@ -19,14 +19,14 @@ describe("CAKE721A", function () {
     const [owner, otherAccount] = await ethers.getSigners();
 
     const Contract = await ethers.getContractFactory("CAKE721A");
-    const contract = await Contract.deploy("CAKE", "CAKE", 10, 5000000000000000, 0, 0, 1667071242, 1667171242);
+    const contract = await Contract.deploy(["CAKE","CAKE"], [10,5000000000000000,0,0], [1667071242, 1667171242], "0x29c6a598a3447F69ff52b9b96dadf630750886FD", [owner.getAddress(), otherAccount.getAddress()], [1,1], [],[]);
 
     return { contract, owner, otherAccount };
   }
 
   describe("Deployment", function () {
 
-    it.skip("Should Return a Contract Address", async () => {
+    it("Should Return a Contract Address", async () => {
       const { contract } = await loadFixture(deployOneYearLockFixture);
       const name = await contract.name()
       expect(name).to.equal('CAKE');
@@ -63,7 +63,7 @@ describe("CAKE721A", function () {
       console.log(tokens)
     })
 
-    it("Set new baseURI and call it with tokenURI", async () => {
+    it.skip("Set new baseURI and call it with tokenURI", async () => {
       const { contract } = await loadFixture(deployOneYearLockFixture);
       await contract.setBaseURI('cake.xyz/tokens/')
       await contract.setMerkleroot("0xa645c2ad6d07684f6b06a4c1cb6cd9e70bcce6fe256ce6bd997150af0d73c9fa")     
@@ -88,7 +88,7 @@ describe("CAKE721A", function () {
 
     })
     
-    it('Reserve tokens', async () => {
+    it.skip('Reserve tokens', async () => {
       const { contract } = await loadFixture(deployOneYearLockFixture);
       await contract.reserveTokens("0x29c6a598a3447F69ff52b9b96dadf630750886FD", 10)
       const balance = await contract.balanceOf("0x29c6a598a3447F69ff52b9b96dadf630750886FD")
