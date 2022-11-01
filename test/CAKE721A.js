@@ -11,15 +11,11 @@ describe("CAKE721A", function () {
   // and reset Hardhat Network to that snapshot in every test.
   async function deployOneYearLockFixture() {
     
-    const name = "TEST"
-    const symbol = "TEST"
-    const maxSupply = 10
-
     // Contracts are deployed using the first signer/account by default
     const [owner, otherAccount] = await ethers.getSigners();
 
     const Contract = await ethers.getContractFactory("CAKE721A");
-    const contract = await Contract.deploy(["CAKE","CAKE"], [10,5000000000000000,0,0], [1667071242, 1667171242], "0x29c6a598a3447F69ff52b9b96dadf630750886FD", [owner.getAddress(), otherAccount.getAddress()], [1,1], [],[]);
+    const contract = await Contract.deploy(["CAKE","CAKE"], [10,5000000000000000,0,0], [1667071242, 1667171242], "0x29c6a598a3447F69ff52b9b96dadf630750886FD", [owner.getAddress(), otherAccount.getAddress()], [1,1], '0x29c6a598a3447F69ff52b9b96dadf630750886FD',50);
 
     return { contract, owner, otherAccount };
   }

@@ -9,7 +9,7 @@ INFURA_API_KEY = process.env.INFURA_API_KEY
 
 /** @type import('hardhat/config').HardhatUserConfig */
 module.exports = {
-  solidity: "0.8.17",
+  solidity: "0.8.17",  
   settings: {
     optimizer: {
       enabled: true,
@@ -17,9 +17,14 @@ module.exports = {
     },
   },
   networks: {
+    hardhat: {      
+      allowUnlimitedContractSize: true,
+    },
     goerli: {
       url: `https://goerli.infura.io/v3/${INFURA_API_KEY}`,
-      accounts: [GOERLI_PRIVATE_KEY]
+      accounts: [GOERLI_PRIVATE_KEY],
+      gasPrice: 20000000000,
+      gas: 6000000,
     }
   },
   etherscan: {
