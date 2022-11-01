@@ -24,7 +24,6 @@ contract CAKE721A is ERC721A, ERC721AQueryable, PaymentSplitter, AccessControl, 
   
   string public PROVENANCE_HASH;
   string public BASE_URI = '';
-  string public CONTRACT_URI;
 
   bytes32 public constant PROVISIONED_ACCESS = keccak256("PROVISIONED_ACCESS");
 
