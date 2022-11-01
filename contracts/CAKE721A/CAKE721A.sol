@@ -10,7 +10,7 @@ import "@openzeppelin/contracts/finance/PaymentSplitter.sol";
 import "@openzeppelin/contracts/access/AccessControl.sol";
 import "@openzeppelin/contracts/token/common/ERC2981.sol";
 
-contract CAKE721A is ERC721A, ERC721AQueryable, ERC721ABurnable, PaymentSplitter, AccessControl, ERC2981 {
+contract CAKE721A is ERC721A, ERC721AQueryable, PaymentSplitter, AccessControl, ERC2981 {
 
   /// @dev Mutable general-purpose contract variables
   uint256 public MAX_TOKEN_SUPPLY;
@@ -37,10 +37,11 @@ contract CAKE721A is ERC721A, ERC721AQueryable, ERC721ABurnable, PaymentSplitter
     uint256[] memory primaryDistShares,
     address secondaryDistRecipient,
     uint96 secondaryDistShare
-    ) ERC721A(description[0], description[1]) PaymentSplitter(primaryDistRecipients, primaryDistShares){
+    ) ERC721A(description[0], description[1]) 
+      PaymentSplitter(primaryDistRecipients, primaryDistShares)
+    {
       require(primaryDistRecipients.length > 0, "Invalid payment address"); 
-      require(superAdmin != address(0), "Admin zero_addr"); 
-      
+      require(superAdmin != address(0), "Admin zero_addr");
       require( primaryDistRecipients.length == primaryDistShares.length, "Invalid payment params");      
 
       MAX_TOKEN_SUPPLY = limits[0];
@@ -52,7 +53,6 @@ contract CAKE721A is ERC721A, ERC721AQueryable, ERC721ABurnable, PaymentSplitter
       PUBLIC_SALE_TIMESTAMP = timestamps[1];      
 
       _grantRole(DEFAULT_ADMIN_ROLE, superAdmin);
-
       _setDefaultRoyalty(secondaryDistRecipient, secondaryDistShare);    
 
   }
@@ -65,11 +65,6 @@ contract CAKE721A is ERC721A, ERC721AQueryable, ERC721ABurnable, PaymentSplitter
   {
     return super.supportsInterface(interfaceId);
   }
-  
-  modifier onlyAdmin(){
-    require(hasRole(DEFAULT_ADMIN_ROLE, msg.sender) || hasRole(PROVISIONED_ACCESS, msg.sender), 'Unauthorized');
-    _;
-  }
 
   function mint(address to, uint256 quantity, bytes32[] calldata proof) external payable {
     string memory eligibilityCheck = checkMintEligibilityMethod(to, quantity, proof, msg.value); 
@@ -77,7 +72,7 @@ contract CAKE721A is ERC721A, ERC721AQueryable, ERC721ABurnable, PaymentSplitter
     _mint(to, quantity);
   }
 
-  function reserveTokens(address to, uint256 quantity) external onlyAdmin {  
+  function reserveTokens(address to, uint256 quantity) external onlyRole(PROVISIONED_ACCESS) {  
     require(totalSupply() + quantity <= MAX_TOKEN_SUPPLY, 'Exceeds max supply');    
     _mint(to, quantity);
   }
@@ -111,41 +106,27 @@ contract CAKE721A is ERC721A, ERC721AQueryable, ERC721ABurnable, PaymentSplitter
   function verifyWhitelistMembership(bytes32[] calldata proof, address _address) internal view returns (bool){        
     bytes32 leaf = keccak256(abi.encodePacked(_address));        
     return MerkleProof.verify(proof, MERKLEROOT, leaf);
-  }
+  }  
 
-  function setMerkleroot(bytes32 merkleroot) external onlyAdmin {
+  function setMerkleroot(bytes32 merkleroot) external onlyRole(PROVISIONED_ACCESS) {
     MERKLEROOT = merkleroot;
   }
 
-  function setTotalSupply(uint256 supply) external onlyAdmin {
+  function setMintParams(uint256 supply, uint256 maxTotal, uint256 maxTxn, uint256 price) external onlyRole(PROVISIONED_ACCESS) {
     require(supply >= totalSupply(), 'Invalid supply');
     MAX_TOKEN_SUPPLY = supply;
-  }
-
-  function setMaxTotalMintsByAddrss(uint256 max) external onlyAdmin {
-    MAX_TOTAL_MINTS_BY_ADDRESS = max;
-  }
-
-  function setMaxMintsPerTxn(uint256 max) external onlyAdmin {
-    MAX_TXN_MINT_LIMIT = max;
-  }
-
-  function setPrice(uint256 price) external onlyAdmin {
-    require(price >= 0, 'Invalid price');
+    MAX_TOTAL_MINTS_BY_ADDRESS = maxTotal;
+    MAX_TXN_MINT_LIMIT = maxTxn;
     PRICE = price;
   }
 
-  function setPrivateSaleTimestamp(uint256 timestamp) external onlyAdmin {
-    require(timestamp >= 0, 'Invalid timestamp');
-    PRIVATE_SALE_TIMESTAMP = timestamp;
+  function setTimestamps(uint256 preSale, uint256 publicSale) external onlyRole(PROVISIONED_ACCESS) {
+    require(preSale >= 0 && publicSale >= 0, 'Invalid timestamp');
+    PRIVATE_SALE_TIMESTAMP = preSale;
+    PUBLIC_SALE_TIMESTAMP = publicSale;
   }
 
-  function setPublicSaleTimestamp(uint256 timestamp) external onlyAdmin {
-    require(timestamp >= 0, 'Invalid timestamp');
-    PUBLIC_SALE_TIMESTAMP = timestamp;
-  }
-
-  function setProvenanceHash(string calldata provenanceHash) external onlyAdmin {
+  function setProvenanceHash(string calldata provenanceHash) external onlyRole(PROVISIONED_ACCESS) {
     require(bytes(PROVENANCE_HASH).length==0, 'Cannot set hash');
     PROVENANCE_HASH = provenanceHash;
   }
@@ -154,16 +135,8 @@ contract CAKE721A is ERC721A, ERC721AQueryable, ERC721ABurnable, PaymentSplitter
     return BASE_URI;
   }
 
-  function setBaseURI(string calldata baseURI) external onlyAdmin {
+  function setBaseURI(string calldata baseURI) external onlyRole(PROVISIONED_ACCESS) {
     BASE_URI = baseURI;
-  }
-
-  function contractURI() public view returns (string memory) {
-    return CONTRACT_URI;
-  }
-
-  function setContractURI(string memory _contractURI) external onlyAdmin {
-    CONTRACT_URI = _contractURI;
   }
 
   /**
@@ -171,7 +144,6 @@ contract CAKE721A is ERC721A, ERC721AQueryable, ERC721ABurnable, PaymentSplitter
   */
   function _burn(uint256 tokenId) internal virtual override {
     super._burn(tokenId);
-    // _resetTokenRoyalty(tokenId);
   }
 }
 

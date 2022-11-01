@@ -10,22 +10,29 @@ describe("CAKE721A", function () {
   // We use loadFixture to run this setup once, snapshot that state,
   // and reset Hardhat Network to that snapshot in every test.
   async function deployOneYearLockFixture() {
-    
+
     // Contracts are deployed using the first signer/account by default
     const [owner, otherAccount] = await ethers.getSigners();
 
     const Contract = await ethers.getContractFactory("CAKE721A");
-    const contract = await Contract.deploy(["CAKE","CAKE"], [10,5000000000000000,0,0], [1667071242, 1667171242], "0x29c6a598a3447F69ff52b9b96dadf630750886FD", [owner.getAddress(), otherAccount.getAddress()], [1,1], '0x29c6a598a3447F69ff52b9b96dadf630750886FD',50);
+    const contract = await Contract.deploy(["CAKE","CAKE"], [10,5000000000000000,0,0], [1667071242, 1667171242], owner.getAddress(), [owner.getAddress(), otherAccount.getAddress()], [1,1], '0x29c6a598a3447F69ff52b9b96dadf630750886FD',50);
 
     return { contract, owner, otherAccount };
   }
 
   describe("Deployment", function () {
 
-    it("Should Return a Contract Address", async () => {
-      const { contract } = await loadFixture(deployOneYearLockFixture);
-      const name = await contract.name()
-      expect(name).to.equal('CAKE');
+    it("Test Deployment", async () => {
+      const { contract } = await loadFixture(deployOneYearLockFixture);      
+
+      const royaltyInfo = await contract.royaltyInfo(0, 100000)    
+
+      expect(await contract.name()).to.equal('CAKE');
+      expect(await contract.symbol()).to.equal('CAKE');
+      expect(await contract.PRICE()).to.equal(5000000000000000);      
+      expect(await contract.MAX_TOKEN_SUPPLY()).to.equal(10)
+      expect(parseInt(royaltyInfo[1])).to.equal(500)
+
     }); 
 
     it.skip("Set Merkleroot for private mint", async () => {
