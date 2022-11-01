@@ -72,31 +72,31 @@ contract CAKE721A is ERC721A, ERC721AQueryable, PaymentSplitter, AccessControl, 
   }
 
   function reserveTokens(address to, uint256 quantity) external onlyRole(PROVISIONED_ACCESS) {  
-    require(totalSupply() + quantity <= MAX_TOKEN_SUPPLY, 'Exceeds max supply');    
+    require(totalSupply() + quantity <= MAX_TOKEN_SUPPLY, 'Invalid');    
     _mint(to, quantity);
   }
   
   function checkMintEligibilityMethod(address to, uint256 quantity, bytes32[] calldata proof, uint256 value) public view returns(string memory) {
     
-    require(to!= address(0), "Invalid receiver");
-    require(block.timestamp >= PRIVATE_SALE_TIMESTAMP || block.timestamp >= PUBLIC_SALE_TIMESTAMP, 'Sale not active');
+    require(to!= address(0), "Invalid addr");
+    require(block.timestamp >= PRIVATE_SALE_TIMESTAMP || block.timestamp >= PUBLIC_SALE_TIMESTAMP, 'Inactive');
     
     if(block.timestamp < PUBLIC_SALE_TIMESTAMP){
-      require(verifyWhitelistMembership(proof, to), "Unauthroized WL mint");
+      require(verifyWhitelistMembership(proof, to), "Unauthroized");
     }
 
-    require(totalSupply() + quantity <= MAX_TOKEN_SUPPLY, 'Exceeds token supply');  
+    require(totalSupply() + quantity <= MAX_TOKEN_SUPPLY, 'Exceeds supply');  
     
     if(MAX_TXN_MINT_LIMIT > 0){
-     require(quantity <= MAX_TXN_MINT_LIMIT, 'Exceeds max txn limit'); 
+     require(quantity <= MAX_TXN_MINT_LIMIT, 'Exceeds limit'); 
     }
 
     if(MAX_TOTAL_MINTS_BY_ADDRESS > 0){
-     require(balanceOf(to) + quantity <= MAX_TOTAL_MINTS_BY_ADDRESS, 'Exceeds max total'); 
+     require(balanceOf(to) + quantity <= MAX_TOTAL_MINTS_BY_ADDRESS, 'Exceeds total'); 
     }
 
     if(PRICE > 0){
-      require(value >= PRICE * quantity , 'Payment below price');
+      require(value >= PRICE * quantity , 'Invalid value');
     }
           
     return '';
@@ -126,7 +126,7 @@ contract CAKE721A is ERC721A, ERC721AQueryable, PaymentSplitter, AccessControl, 
   }
 
   function setProvenanceHash(string calldata provenanceHash) external onlyRole(PROVISIONED_ACCESS) {
-    require(bytes(PROVENANCE_HASH).length==0, 'Cannot set hash');
+    require(bytes(PROVENANCE_HASH).length==0, 'Invalid');
     PROVENANCE_HASH = provenanceHash;
   }
 
