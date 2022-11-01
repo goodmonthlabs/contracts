@@ -8,8 +8,9 @@ import "erc721a/contracts/extensions/ERC721ABurnable.sol";
 import "@openzeppelin/contracts/utils/cryptography/MerkleProof.sol";
 import "@openzeppelin/contracts/finance/PaymentSplitter.sol";
 import "@openzeppelin/contracts/access/AccessControl.sol";
+import "@openzeppelin/contracts/token/common/ERC2981.sol";
 
-contract CAKE721A is ERC721A, ERC721AQueryable, ERC721ABurnable, PaymentSplitter, AccessControl {
+contract CAKE721A is ERC721A, ERC721AQueryable, ERC721ABurnable, PaymentSplitter, AccessControl, ERC2981 {
 
   /// @dev Mutable general-purpose contract variables
   uint256 public MAX_TOKEN_SUPPLY;
@@ -19,8 +20,6 @@ contract CAKE721A is ERC721A, ERC721AQueryable, ERC721ABurnable, PaymentSplitter
   uint256 public PUBLIC_SALE_TIMESTAMP;  
   uint256 public PRICE;
 
-  uint96 public ROYALTY_AMOUNT;
-
   bytes32 public MERKLEROOT;  
   
   string public PROVENANCE_HASH;
@@ -28,19 +27,6 @@ contract CAKE721A is ERC721A, ERC721AQueryable, ERC721ABurnable, PaymentSplitter
   string public CONTRACT_URI;
 
   bytes32 public constant PROVISIONED_ACCESS = keccak256("PROVISIONED_ACCESS");
-  
-
-  /// @dev Object with royalty info
-  struct RoyaltyInfo {
-    address receiver;
-    uint96 royaltyFraction;
-  }
-
-  /// @dev Fallback royalty information
-  RoyaltyInfo private _defaultRoyaltyInfo;
-
-  /// @dev Royalty information
-  mapping(uint256 => RoyaltyInfo) private _tokenRoyaltyInfo;
 
   constructor(
     string[] memory description, // [name, symbol]
@@ -49,14 +35,13 @@ contract CAKE721A is ERC721A, ERC721AQueryable, ERC721ABurnable, PaymentSplitter
     address superAdmin,
     address[] memory primaryDistRecipients,
     uint256[] memory primaryDistShares,
-    address[] memory secondaryDistRecipients,
-    uint256[] memory secondaryDistShares
+    address secondaryDistRecipient,
+    uint96 secondaryDistShare
     ) ERC721A(description[0], description[1]) PaymentSplitter(primaryDistRecipients, primaryDistShares){
       require(primaryDistRecipients.length > 0, "Invalid payment address"); 
       require(superAdmin != address(0), "Admin zero_addr"); 
       
-      require( primaryDistRecipients.length == primaryDistShares.length, "Invalid payment params");
-      require( secondaryDistRecipients.length == secondaryDistShares.length, "Invalid royalty params");
+      require( primaryDistRecipients.length == primaryDistShares.length, "Invalid payment params");      
 
       MAX_TOKEN_SUPPLY = limits[0];
       PRICE = limits[1];
@@ -68,17 +53,14 @@ contract CAKE721A is ERC721A, ERC721AQueryable, ERC721ABurnable, PaymentSplitter
 
       _grantRole(DEFAULT_ADMIN_ROLE, superAdmin);
 
-      _setDefaultRoyalty(
-        secondaryDistRecipients[0],
-        uint96(secondaryDistShares[0])
-      );    
+      _setDefaultRoyalty(secondaryDistRecipient, secondaryDistShare);    
 
   }
 
   function supportsInterface(bytes4 interfaceId)
     public
     view
-    override(ERC721A, IERC721A, AccessControl)
+    override(ERC721A, IERC721A, AccessControl, ERC2981)
     returns (bool)
   {
     return super.supportsInterface(interfaceId);
@@ -183,84 +165,13 @@ contract CAKE721A is ERC721A, ERC721AQueryable, ERC721ABurnable, PaymentSplitter
   function setContractURI(string memory _contractURI) external onlyAdmin {
     CONTRACT_URI = _contractURI;
   }
-  function setDefaultRoyalty(address receiver, uint96 feeNumerator) external onlyAdmin {
-    _setDefaultRoyalty(receiver, feeNumerator);
-  }
-
-  function deleteDefaultRoyalty() external onlyAdmin {
-    _deleteDefaultRoyalty();
-  }
-
-  function resetTokenRoyalty(uint256 tokenId) external onlyAdmin {
-    _resetTokenRoyalty(tokenId);
-  }
-
-  /**
-  * @dev The denominator with which to interpret the fee set in {_setTokenRoyalty} and {_setDefaultRoyalty} as a
-  * fraction of the sale price. Defaults to 10000 so fees are expressed in basis points, but may be customized by an
-  * override.
-  */
-  function _feeDenominator() internal pure returns (uint96) {
-    return 10000;
-  }
-
-  /**
-  * @dev Sets the royalty information that all ids in this contract will default to.
-  *
-  * Requirements:
-  *
-  * - `receiver` cannot be the zero address.
-  * - `feeNumerator` cannot be greater than the fee denominator.
-  */
-  function _setDefaultRoyalty(address receiver, uint96 feeNumerator)
-    internal
-  {
-    require(feeNumerator <= _feeDenominator(), "Invalid price");
-    require(receiver != address(0), "Invalid receiver");
-
-    _defaultRoyaltyInfo = RoyaltyInfo(receiver, feeNumerator);
-  }
-
-  /**
-  * @dev Removes default royalty information.
-  */
-  function _deleteDefaultRoyalty() internal {
-      delete _defaultRoyaltyInfo;
-  }
-
-  /**
-  * @dev Sets the royalty information for a specific token id, overriding the global default.
-  *
-  * Requirements:
-  *
-  * - `tokenId` must be already minted.
-  * - `receiver` cannot be the zero address.
-  * - `feeNumerator` cannot be greater than the fee denominator.
-  */
-  function _setTokenRoyalty(
-      uint256 tokenId,
-      address receiver,
-      uint96 feeNumerator
-  ) internal {
-    require(feeNumerator <= _feeDenominator(), "Invalid price");
-    require(receiver != address(0), "Invalid receiver");
-
-    _tokenRoyaltyInfo[tokenId] = RoyaltyInfo(receiver, feeNumerator);
-  }
-
-  /**
-  * @dev Resets royalty information for the token id back to the global default.
-  */
-  function _resetTokenRoyalty(uint256 tokenId) internal {
-    delete _tokenRoyaltyInfo[tokenId];
-  }
 
   /**
   * @dev See {ERC721-_burn}. This override additionally clears the royalty information for the token.
   */
   function _burn(uint256 tokenId) internal virtual override {
     super._burn(tokenId);
-    _resetTokenRoyalty(tokenId);
+    // _resetTokenRoyalty(tokenId);
   }
 }
 
