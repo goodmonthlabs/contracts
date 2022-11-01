@@ -52,6 +52,7 @@ contract CAKE721A is ERC721A, ERC721AQueryable, PaymentSplitter, AccessControl, 
       PUBLIC_SALE_TIMESTAMP = timestamps[1];      
 
       _grantRole(DEFAULT_ADMIN_ROLE, superAdmin);
+      _grantRole(PROVISIONED_ACCESS, superAdmin);
       _setDefaultRoyalty(secondaryDistRecipient, secondaryDistShare);    
 
   }
@@ -111,7 +112,7 @@ contract CAKE721A is ERC721A, ERC721AQueryable, PaymentSplitter, AccessControl, 
     MERKLEROOT = merkleroot;
   }
 
-  function setMintParams(uint256 supply, uint256 maxTotal, uint256 maxTxn, uint256 price) external onlyRole(PROVISIONED_ACCESS) {
+  function setContractParams(uint256 supply, uint256 maxTotal, uint256 maxTxn, uint256 price) external onlyRole(PROVISIONED_ACCESS) {
     require(supply >= totalSupply(), 'Invalid supply');
     MAX_TOKEN_SUPPLY = supply;
     MAX_TOTAL_MINTS_BY_ADDRESS = maxTotal;

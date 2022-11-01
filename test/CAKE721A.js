@@ -35,11 +35,17 @@ describe("CAKE721A", function () {
 
     }); 
 
-    it.skip("Set Merkleroot for private mint", async () => {
-      const { contract } = await loadFixture(deployOneYearLockFixture);
-      await contract.setMerkleroot("0xa645c2ad6d07684f6b06a4c1cb6cd9e70bcce6fe256ce6bd997150af0d73c9fa")
-      const merkleroot = await contract.MERKLEROOT()
-      expect(merkleroot).to.equal("0xa645c2ad6d07684f6b06a4c1cb6cd9e70bcce6fe256ce6bd997150af0d73c9fa")
+    it("Set Contract Params After Deployment", async () => {
+      const { contract, owner } = await loadFixture(deployOneYearLockFixture);
+      
+      const options = {value: ethers.utils.parseEther(".5")}
+      await contract.connect(owner).setContractParams(100, 10, 2, 1000000000000000)
+      
+      expect(await contract.MAX_TOKEN_SUPPLY()).to.equal(100)
+      expect(await contract.MAX_TOTAL_MINTS_BY_ADDRESS()).to.equal(10)
+      expect(await contract.MAX_TXN_MINT_LIMIT()).to.equal(2)
+      expect(await contract.PRICE()).to.equal(1000000000000000);      
+            
     })
 
     it.skip("Mint", async () => {
