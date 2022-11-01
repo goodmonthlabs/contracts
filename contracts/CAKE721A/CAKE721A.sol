@@ -4,7 +4,6 @@ pragma solidity ^0.8.4;
 
 import "erc721a/contracts/ERC721A.sol";
 import "erc721a/contracts/extensions/ERC721AQueryable.sol";
-import "erc721a/contracts/extensions/ERC721ABurnable.sol";
 import "@openzeppelin/contracts/utils/cryptography/MerkleProof.sol";
 import "@openzeppelin/contracts/finance/PaymentSplitter.sol";
 import "@openzeppelin/contracts/access/AccessControl.sol";
@@ -22,7 +21,7 @@ contract CAKE721A is ERC721A, ERC721AQueryable, PaymentSplitter, AccessControl, 
 
   bytes32 public MERKLEROOT;  
   
-  string public PROVENANCE_HASH;
+  string public PROVENANCE_HASH = '';
   string public BASE_URI = '';
 
   bytes32 public constant PROVISIONED_ACCESS = keccak256("PROVISIONED_ACCESS");
@@ -139,11 +138,5 @@ contract CAKE721A is ERC721A, ERC721AQueryable, PaymentSplitter, AccessControl, 
     BASE_URI = baseURI;
   }
 
-  /**
-  * @dev See {ERC721-_burn}. This override additionally clears the royalty information for the token.
-  */
-  function _burn(uint256 tokenId) internal virtual override {
-    super._burn(tokenId);
-  }
 }
 
