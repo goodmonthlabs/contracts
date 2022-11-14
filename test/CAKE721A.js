@@ -57,6 +57,7 @@ describe("CAKE721A", function () {
 
     it("Authorize wallet and test privledged function", async () => {
       const { contract, otherAccount } = await loadFixture(deployOneYearLockFixture);
+      console.log(ethers.utils.keccak256(ethers.utils.toUtf8Bytes("PROVISIONED_ACCESS")))
       await contract.grantRole(ethers.utils.keccak256(ethers.utils.toUtf8Bytes("PROVISIONED_ACCESS")), otherAccount.getAddress())
 
       await contract.connect(otherAccount).setContractParams(100, 10, 2, 1000000000000000)
@@ -147,10 +148,10 @@ describe("CAKE721A", function () {
 
     it("Revert when public sale is closed", async () => {
       const { contract } = await loadFixture(deployOneYearLockFixture);
-      await contract.setTimestamps(1667071242, 1667427598)
+      await contract.setTimestamps(1667071242, 1667604941) // set Public Date to sometim > new Date.getTime()
       
       const options = {value: ethers.utils.parseEther("1")}
-      await expect(contract.mint("0x29c6a598a3447F69ff52b9b96dadf630750886FD", 1, [], options)).to.be.revertedWith('Unauthroized');
+      await expect(contract.mint("0x089C8e678E4db12971f78dB08f86fE69b85454d0", 1, [], options)).to.be.revertedWith('Unauthroized');
     })
 
   });

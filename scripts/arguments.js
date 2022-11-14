@@ -1,9 +1,9 @@
-const client = "0x29c6a598a3447F69ff52b9b96dadf630750886FD" 
+const client = "0x089C8e678E4db12971f78dB08f86fE69b85454d0" 
 
 module.exports = [
-  ["CAKE","CAKE"],
-  [10,5000000000000000,0,0],
-  [1667071242, 1667171242],
+  ["Probably Nothing Cup","PNC"],
+  [64,ethers.utils.parseEther("0.1"),1,1],
+  [1667517644, 1667517644],
   client,
   [client],
   [1],
