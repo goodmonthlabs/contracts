@@ -1,4 +1,4 @@
-const client = "0x089C8e678E4db12971f78dB08f86fE69b85454d0" 
+const client = "0x29c6a598a3447F69ff52b9b96dadf630750886FD" 
 
 module.exports = [
   ["Probably Nothing Cup","PNC"],
