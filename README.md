@@ -19,3 +19,7 @@ compile contracts:
 
 run deploy script referencing localhost network:
 `npx hardhat run --network localhost scripts/deploy.js`
+
+update `diamondAddress` variable inside `test/deployedDiamondTest.js` based on output from previous command
+
+update `walletPrivateKey` and `walletAddress` variable inside `test/deployedDiamondTest.js` based on output from `npx hardhat node`
